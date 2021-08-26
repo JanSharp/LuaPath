@@ -4,7 +4,10 @@
 ---[LuaFileSystem](https://keplerproject.github.io/luafilesystem/)
 ---@diagnostic disable-next-line: undefined-doc-name
 ---@type LFS
-local lfs = pcall(require, "lfs")
+local lfs
+do
+  local _; _, lfs = pcall(require, "lfs")
+end
 
 ---@class Path
 ---@field entries string[]
