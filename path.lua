@@ -146,7 +146,7 @@ end
 Path.arg_parser_path_type_def = {
   id = "path",
   arg_count = 1,
-  convert = function(arg, context, err_level)
+  convert = function(arg, context)
     return Path.new(arg)
   end,
   compare = function(left, right)
