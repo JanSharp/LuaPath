@@ -35,7 +35,7 @@ __index  -  this lib's `Path` table
 __len(path)  -  uses length()
 __tostring()  -  uses str()
 arg_parser_path_type_def  -  see notes about LuaArgParser above
-attr(self, mode)  -  alias for `LFS.attr(self:str(), mode)`
+attr(self, mode)  -  alias for `LFS.attributes(self:str(), mode)`
 combine(...)
 copy(self)
 equals(self, other)
