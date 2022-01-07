@@ -6,7 +6,11 @@
 ---@type LFS
 local lfs
 do
-  local _; _, lfs = pcall(require, "lfs")
+  local success
+  success, lfs = pcall(require, "lfs")
+  if not success then
+    lfs = nil
+  end
 end
 
 ---@class Path
@@ -258,7 +262,7 @@ function Path:to_fully_qualified(working_directory)
       result.drive_letter = assert(get_drive_letter(working_directory or lfs.currentdir()))
     end
   else
-    if not working_directory or not lfs then
+    if not working_directory and not lfs then
       error("Cannot convert a relative path to a fully qualified path \z
         without a provided `working_directory` \z
         nor without LuaFileSystem."
