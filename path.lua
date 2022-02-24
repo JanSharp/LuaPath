@@ -130,8 +130,8 @@ end
 function Path:str()
   return (is_windows and self.drive_letter and (self.drive_letter..":") or "")
     ..(self:is_absolute() and main_separator or "")
-    ..table.concat(self.entries, main_separator)
-    ..(self.force_directory and self.entries[1] and main_separator or "")
+    ..(self.entries[1] and table.concat(self.entries, main_separator) or (not self:is_absolute() and "." or ""))
+    ..(self.force_directory and (self.entries[1] or not self:is_absolute()) and main_separator or "")
 end
 Path.__tostring = Path.str
 
