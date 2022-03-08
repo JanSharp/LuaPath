@@ -10,7 +10,7 @@ Supported formats
 - `C:/` - **windows only** same as `C:`
 - **windows only** any `\` is treated like `/`
 
-Speaking of windows, `use_forward_slash_as_main_separator_on_windows()` will cause `str()` to print paths using `/` instead of `\`.
+Speaking of windows, use `set_main_separator("/")` will cause `str()` to print paths using `/` instead of `\`. This can be reverted by setting it to `"\\"` and can be overridden for each `str()` call, like `str("/")` or `str("\\")`. A second arg for `set_main_separator()` and `str()` can be set to true to change the separator for all platforms, not just windows.
 
 It also has very light, optional integration with [LuaFileSystem](https://keplerproject.github.io/luafilesystem/).\
 `exists()` and `attr()` directly depend on it, `to_fully_qualified()` may depend on it if no `working_directory` is provided.
@@ -34,6 +34,7 @@ __eq(left, right)  -  uses equals()
 __index  -  this lib's `Path` table
 __len(path)  -  uses length()
 __tostring()  -  uses str()
+is_windows()  -  is the current platform windows? based on Lua's package.config separator being a backslash
 arg_parser_path_type_def  -  see notes about LuaArgParser above
 attr(self, mode)  -  alias for `LFS.attributes(self:str(), mode)`
 combine(...)
@@ -48,14 +49,17 @@ new(path)  -  nil|string|path
 normalize(self)  -  resolve all `.` and `..` entries
 set_drive_letter(self, drive_letter)  -  windows only, errors otherwise (may change)
 set_force_directory(self, force_directory)
-str(self)
+str(self, overridden_separator, override_regardless_of_platform)
+  - overridden_separator is only used if platform is windows or `override_regardless_of_platform == true`
 sub(self, i, j)  -  similar to `string.sub`
 to_absolute(self)  -  on windows clears drive_letter
 to_fully_qualified(self, working_directory)
   -  may depend on LFS if no `working_directory` is provided
 to_relative(self)
 try_parse(path)  -  nil|string  returns `nil, err` on error
-use_forward_slash_as_main_separator_on_windows()
+set_main_separator(forward_or_backslash, set_regardless_of_platform)
+  -  only sets if platform is windows, unless `set_regardless_of_platform == true`
+get_main_separator()  -  main separator is used by the `str` function
 ```
 
 Extra fields on each path object

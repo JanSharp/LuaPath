@@ -28,9 +28,24 @@ local separator_pattern = is_windows
   and "()[\\/]()"
   or "()/()"
 
----use forward slashes when converting paths to strings
-function Path.use_forward_slash_as_main_separator_on_windows()
-  main_separator = "/"
+---The main separator defines what to use when converting Paths to strings.\
+---By default this only sets the main separator if the current platform is windows.
+---@param forward_or_backslash '"/"'|'"\\"' @ New main separator
+---@param set_regardless_of_platform boolean @ Set even if the current platform is not windows?
+function Path.set_main_separator(forward_or_backslash, set_regardless_of_platform)
+  if forward_or_backslash ~= "\\" and forward_or_backslash ~= "/" then
+    error("Attempt to set main path separator to '"..forward_or_backslash.."' \z
+      when the only valid separators are '/' and '\\'."
+    )
+  end
+  if set_regardless_of_platform or is_windows then
+    main_separator = forward_or_backslash
+  end
+end
+
+---Get the main separator that is currently used when converting Paths to strings
+function Path.get_main_separator()
+  return main_separator
 end
 
 local function get_drive_letter(path)
@@ -41,6 +56,10 @@ local function get_drive_letter(path)
     return nil, "Unable to get drive letter from path '"..path.."'"
   end
   return path:sub(1, 1)
+end
+
+function Path.is_windows()
+  return is_windows
 end
 
 ---Try parsing a string as a path
@@ -126,12 +145,26 @@ function Path:is_absolute()
   return ((is_windows and self.drive_letter) or self.__is_absolute)
 end
 
+---By default this only overrides the main separator if the current platform is windows.
+---@param overridden_separator '"/"'|'"\\"' @ Separator to use instead of the current main separator.
+---@param override_regardless_of_platform boolean @ Use even if the current platform is not windows?
 ---@return string
-function Path:str()
+function Path:str(overridden_separator, override_regardless_of_platform)
+  local separator = main_separator
+  if overridden_separator then
+    if overridden_separator ~= "\\" and overridden_separator ~= "/" then
+      error("Attempt to set path separator to '"..overridden_separator.."' \z
+        when the only valid separators are '/' and '\\'."
+      )
+    end
+    if override_regardless_of_platform or is_windows then
+      separator = overridden_separator
+    end
+  end
   return (is_windows and self.drive_letter and (self.drive_letter..":") or "")
-    ..(self:is_absolute() and main_separator or "")
-    ..(self.entries[1] and table.concat(self.entries, main_separator) or (not self:is_absolute() and "." or ""))
-    ..(self.force_directory and (self.entries[1] or not self:is_absolute()) and main_separator or "")
+    ..(self:is_absolute() and separator or "")
+    ..(self.entries[1] and table.concat(self.entries, separator) or (not self:is_absolute() and "." or ""))
+    ..(self.force_directory and (self.entries[1] or not self:is_absolute()) and separator or "")
 end
 Path.__tostring = Path.str
 
