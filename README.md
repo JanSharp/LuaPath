@@ -37,6 +37,7 @@ __tostring()  -  uses str()
 is_windows()  -  is the current platform windows? based on Lua's package.config separator being a backslash
 arg_parser_path_type_def  -  see notes about LuaArgParser above
 attr(self, mode)  -  alias for `LFS.attributes(self:str(), mode)`
+sym_attr(self, mode)  -  alias for `LFS.symlinkattributes(self:str(), mode)`
 combine(...)
 copy(self)
 equals(self, other)

@@ -383,6 +383,15 @@ function Path:attr(request_name)
   return lfs.attributes(self:str(), request_name)
 end
 
+---requires [LuaFileSystem](https://keplerproject.github.io/luafilesystem/)\
+---calls lfs.symlinkattributes(request_name) and returns the result
+---@param request_name string
+---@diagnostic disable-next-line: undefined-doc-name
+---@return string|number|LFSAttributes|nil
+function Path:sym_attr(request_name)
+  return lfs.symlinkattributes(self:str(), request_name)
+end
+
 Path.arg_parser_path_type_def = {
   id = "path",
   arg_count = 1,
