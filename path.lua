@@ -374,6 +374,11 @@ function Path:exists()
   return lfs.attributes(self:str(), "dev") ~= nil
 end
 
+---requires [LuaFileSystem](https://keplerproject.github.io/luafilesystem/)
+function Path:enumerate()
+  return lfs.dir(self:str())
+end
+
 ---requires [LuaFileSystem](https://keplerproject.github.io/luafilesystem/)\
 ---calls lfs.attributes(request_name) and returns the result
 ---@param request_name string
