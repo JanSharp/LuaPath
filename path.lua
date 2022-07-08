@@ -9,15 +9,15 @@ do
   local success
   success, lfs = pcall(require, "lfs")
   if not success then
-    lfs = nil
+    lfs = (nil)--[[@as LFS]]
   end
 end
 
 ---@class Path
 ---@field entries string[]
----@field force_directory boolean|nil @ trailing slashes define `force_directory` paths
----@field __is_absolute boolean|nil @ internal only. use `is_absolute()` instead
----@field drive_letter string|nil @ windows only
+---@field force_directory boolean? @ trailing slashes define `force_directory` paths
+---@field __is_absolute boolean? @ internal only. use `is_absolute()` instead
+---@field drive_letter string? @ windows only
 local Path = {}
 Path.__index = Path
 
@@ -31,7 +31,7 @@ local separator_pattern = is_windows
 ---The main separator defines what to use when converting Paths to strings.\
 ---By default this only sets the main separator if the current platform is windows.
 ---@param forward_or_backslash '"/"'|'"\\"' @ New main separator
----@param set_regardless_of_platform boolean @ Set even if the current platform is not windows?
+---@param set_regardless_of_platform? boolean @ Set even if the current platform is not windows?
 function Path.set_main_separator(forward_or_backslash, set_regardless_of_platform)
   if forward_or_backslash ~= "\\" and forward_or_backslash ~= "/" then
     error("Attempt to set main path separator to '"..forward_or_backslash.."' \z
@@ -48,6 +48,7 @@ function Path.get_main_separator()
   return main_separator
 end
 
+---@param path string
 local function get_drive_letter(path)
   if not is_windows then
     error("Cannot get_drive_letter when not on windows")
@@ -63,7 +64,7 @@ function Path.is_windows()
 end
 
 ---Try parsing a string as a path
----@param path? string
+---@param path string?
 ---@return Path|nil result @ nil if unable to parse
 ---@return nil|string err
 function Path.try_parse(path)
@@ -106,16 +107,17 @@ function Path.try_parse(path)
       entries[#entries+1] = entires_part:sub(entry_start_position)
     end
   end
-  return setmetatable(result, Path)
+  return (setmetatable(result, Path))
 end
 
 ---Path constructor
----@param path? string|Path
+---@param path (string|Path)?
 ---@return Path
 function Path.new(path)
   if type(path) == "table" then
     return path:copy()
   end
+  ---@cast path string
   local result, err = Path.try_parse(path)
   if not result then
     error(err)
@@ -146,8 +148,8 @@ function Path:is_absolute()
 end
 
 ---By default this only overrides the main separator if the current platform is windows.
----@param overridden_separator '"/"'|'"\\"' @ Separator to use instead of the current main separator.
----@param override_regardless_of_platform boolean @ Use even if the current platform is not windows?
+---@param overridden_separator ("/"|"\\")? @ Separator to use instead of the current main separator.
+---@param override_regardless_of_platform boolean? @ Use even if the current platform is not windows?
 ---@return string
 function Path:str(overridden_separator, override_regardless_of_platform)
   local separator = main_separator
@@ -173,6 +175,8 @@ function Path:length()
 end
 Path.__len = Path.length
 
+---@param other Path
+---@return boolean
 function Path:equals(other)
   local count = #self.entries
   if count ~= #other.entries
@@ -248,7 +252,7 @@ end
 ---Extract a part of the path as a new path.
 ---Works just like string.sub where each entry_name is like a character
 ---@param i integer
----@param j? integer
+---@param j integer?
 ---@return Path
 function Path:sub(i, j)
   local count = #self.entries
@@ -282,6 +286,8 @@ function Path:sub(i, j)
   return result
 end
 
+---@param working_directory Path|string?
+---@return Path
 function Path:to_fully_qualified(working_directory)
   local result = self:copy()
   if self:is_absolute() then
@@ -292,7 +298,12 @@ function Path:to_fully_qualified(working_directory)
           nor without LuaFileSystem."
         )
       end
-      result.drive_letter = assert(get_drive_letter(working_directory or lfs.currentdir()))
+      result.drive_letter = assert(get_drive_letter(
+        type(working_directory) == "table"
+          and working_directory:str()
+          or working_directory--[[@as string?]]
+          or assert(lfs.currentdir()))
+      )
     end
   else
     if not working_directory and not lfs then
@@ -306,6 +317,7 @@ function Path:to_fully_qualified(working_directory)
   return result
 end
 
+---@return Path
 function Path:normalize()
   local result = self:copy()
   local entries = {}
@@ -333,6 +345,7 @@ function Path:normalize()
 end
 
 ---**on windows** clears the `drive_letter`. You may want `set_drive_letter()` instead
+---@return Path
 function Path:to_absolute()
   local result = self:copy()
   result.__is_absolute = true
@@ -342,6 +355,7 @@ function Path:to_absolute()
   return result
 end
 
+---@return Path
 function Path:to_relative()
   local result = self:copy()
   result.__is_absolute = false
@@ -352,6 +366,8 @@ function Path:to_relative()
 end
 
 ---**windows only**
+---@param drive_letter string?
+---@return Path
 function Path:set_drive_letter(drive_letter)
   if not is_windows then
     -- TODO: decide on if it should just silently return instead of erroring
@@ -363,6 +379,7 @@ function Path:set_drive_letter(drive_letter)
   return result
 end
 
+---@param force_directory boolean?
 function Path:set_force_directory(force_directory)
   local result = self:copy()
   result.force_directory = force_directory
@@ -370,11 +387,16 @@ function Path:set_force_directory(force_directory)
 end
 
 ---requires [LuaFileSystem](https://keplerproject.github.io/luafilesystem/)
+---@return boolean
 function Path:exists()
   return lfs.attributes(self:str(), "dev") ~= nil
 end
 
 ---requires [LuaFileSystem](https://keplerproject.github.io/luafilesystem/)
+---@diagnostic disable-next-line: undefined-doc-name
+---@return fun(dir_obj: LFSDirObject):string iter
+---@diagnostic disable-next-line: undefined-doc-name
+---@return LFSDirObject dir_obj
 function Path:enumerate()
   return lfs.dir(self:str())
 end
