@@ -30,7 +30,7 @@ local separator_pattern = is_windows
 
 ---The main separator defines what to use when converting Paths to strings.\
 ---By default this only sets the main separator if the current platform is windows.
----@param forward_or_backslash '"/"'|'"\\"' @ New main separator
+---@param forward_or_backslash "/"|"\\" @ New main separator
 ---@param set_regardless_of_platform? boolean @ Set even if the current platform is not windows?
 function Path.set_main_separator(forward_or_backslash, set_regardless_of_platform)
   if forward_or_backslash ~= "\\" and forward_or_backslash ~= "/" then
